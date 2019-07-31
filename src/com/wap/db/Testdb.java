@@ -5,6 +5,9 @@ import java.sql.*;
 public class Testdb {
     public static void main(String[] args) {
         Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
         String server = "localhost";
         String database = "bobar1";
         String user_name = "root";
@@ -25,9 +28,9 @@ public class Testdb {
 
             String sql = "select * from restaurant";
             //String sql = "desc user";
-            Statement stmt = null;
+            //Statement stmt = null;
             stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
 
             rs.next();
             System.out.println(rs.getString(2));
@@ -40,6 +43,10 @@ public class Testdb {
 
         // 3.해제
         try{
+            if(rs != null)
+                rs.close();
+            if(stmt != null)
+                stmt.close();
             if(con != null)
                 con.close();
         }catch (SQLException e){
