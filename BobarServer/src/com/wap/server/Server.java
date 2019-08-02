@@ -3,17 +3,42 @@ package com.wap.server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+
+import com.wap.db.*;
 
 public class Server {
+	static Connection con = null;
+	static PreparedStatement pstmt = null;
+	static ResultSet rs = null;
 
     public static void main(String[] args) throws IOException {
         // TODO Auto-generated method stub
         Server sv = new Server();
+        sv.dbinit();
         sv.serverRun();
 
     }
-
+    
+    public void dbinit() {
+    	try {
+    		Context initContext = new InitialContext();
+    		DataSource ds = DBCPManager.getDataSource();
+    		con = ds.getConnection();
+    	}catch (Exception e) {
+			// TODO: handle exception
+    		e.printStackTrace();
+		}
+    }
+    
     public void serverRun() throws IOException {
+    	
         ServerSocket server = null;
         int port = 4000;
         Socket socket = null;
@@ -25,6 +50,14 @@ public class Server {
 
 
         try {
+        	String sql = "select * from user";
+        	pstmt = con.prepareStatement(sql);
+        	rs = pstmt.executeQuery();
+        	
+        	rs.next();
+        	
+        	String responseData = rs.getString("userId");
+        	
             server = new ServerSocket(port);
             while (true) {
                 System.out.println("----------waiting----------");
@@ -41,7 +74,7 @@ public class Server {
                 System.out.println("클라이언트로 부터 받은 데이터 : "+data);
 
                 //받은 데이터 그대로  다시 보내기
-                sendData(data, socket);
+                sendData(responseData, socket);
                 System.out.println("--------send success--------");
             }
         } catch (Exception e) {

@@ -16,55 +16,44 @@ public class DBCPTest {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		
-try {
-			
+
+		try {
 			Context initContext = new InitialContext();
-			//DataSource ds = (DataSource) initContext.lookup("java:comp/env/jdbc/bobar1");
-			
 			DataSource ds = DBCPManager.getDataSource();
-			
-			 conn = ds.getConnection();                   
+			conn = ds.getConnection();
 
-             String sql = "select * from user";                                                                                                                                                                                    
+			String sql = "select * from user";
+			pstmt = conn.prepareStatement(sql);
+			rs = pstmt.executeQuery();
 
-             pstmt = conn.prepareStatement(sql);
+			while (rs.next()) {
+				System.out.println("name ==> " + rs.getString(2));
+			}
 
-             rs = pstmt.executeQuery();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (rs != null)
+					rs.close();
+			} catch (Exception e) {
+			}
 
-             while(rs.next()) {
-                 System.out.println("name ==> " + rs.getString(2));
-             }
+			try {
+				if (pstmt != null)
+					pstmt.close();
 
-     } catch ( SQLException e ) {
+			} catch (Exception e) {
+			}
 
-             e.printStackTrace();
+			try {
+				if (conn != null)
+					conn.close();
 
-     } catch ( Exception e ) {
-
-             e.printStackTrace();
-
-     } finally {
-
-         try{
-
-               if ( rs != null ) rs.close();
-
-             }catch( Exception e ) {}
-
-         try{
-
-               if ( pstmt != null ) pstmt.close();
-
-             }catch( Exception e ) {}
-
-         try{
-
-               if ( conn != null ) conn.close();
-
-             }catch( Exception e ) {}
-
-     }
+			} catch (Exception e) {
+			}
+		}
 	}
-
 }
