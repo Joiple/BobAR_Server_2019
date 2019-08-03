@@ -13,7 +13,7 @@ public class Client {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Client cl = new Client();
-		cl.ClientRun("this is client");
+		cl.ClientRun("1%%");
 	}
 	
 	public void ClientRun(String data) {
