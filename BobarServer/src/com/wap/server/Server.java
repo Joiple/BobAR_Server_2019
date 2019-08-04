@@ -52,17 +52,11 @@ public class Server {
         InputStream is = null;
         InputStreamReader isr = null;
         BufferedReader br = null;
+        
+        String responseData;
 
 
-        try {
-        	String sql = "select * from user";
-        	pstmt = con.prepareStatement(sql);
-        	rs = pstmt.executeQuery();
-        	
-        	rs.next();
-        	
-        	String responseData = rs.getString("userId");
-        	
+        try {        	
             server = new ServerSocket(port);
             while (true) {
                 System.out.println("----------waiting----------");
@@ -82,10 +76,6 @@ public class Server {
                 StringTokenizer st = new StringTokenizer(data,delimiter);
                 while(st.hasMoreTokens()) {
                 	dataArray.add(st.nextToken());
-                }
-                
-                for(int i = 0; i < dataArray.size(); i++) {
-                	System.out.println(dataArray.get(i));
                 }
                 
                 responseData = processData(dataArray);
