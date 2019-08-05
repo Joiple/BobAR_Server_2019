@@ -2,6 +2,9 @@ package com.wap.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,6 +22,8 @@ import java.util.StringTokenizer;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+
+import org.apache.tomcat.jni.OS;
 
 import com.wap.db.DBCPManager;
 
@@ -84,8 +89,13 @@ class Multithread implements Runnable {
 				dataArray.add(st.nextToken());
 			}
 
-			responseData = processData(dataArray);
-			sendData(responseData, socket);
+			String requestCode = dataArray.get(0);
+			if(requestCode.equals("4")) {
+				sendImage(dataArray.get(1), socket);
+			}else {
+				responseData = processData(dataArray);
+				sendData(responseData, socket);
+			}
 			System.out.println("*************send success*************");
 
 		} catch (Exception e) {
@@ -94,6 +104,46 @@ class Multithread implements Runnable {
 		}
 	}
 
+	public void sendImage(String fileName, Socket socket) {
+		byte buffer[] = new byte[2048];
+		
+		File imgfile = new File(fileName+".JPG");
+		String fileLength = String.valueOf(imgfile.length());
+		
+		//change "1234" to "0000001234", to make sure 10 size
+		String header = "0000000000".substring(0,10-fileLength.length()) + fileLength;
+		
+		FileInputStream fis = null;
+		OutputStream os = null;
+		
+		try {
+			fis = new FileInputStream(imgfile);
+			os = socket.getOutputStream();
+			
+			//send header
+			os.write(header.getBytes());
+			
+			//send body
+			while(fis.available() > 0) {
+				int readSize = fis.read(buffer);
+				os.write(buffer, 0, readSize);
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			try {
+				os.close();
+				fis.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
 	public String initViewData() {
 		String responseData = "";
 		
