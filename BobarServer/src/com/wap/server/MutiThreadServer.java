@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,8 +22,6 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import org.apache.tomcat.jni.OS;
-
 import com.wap.db.DBCPManager;
 
 public class MutiThreadServer {
@@ -39,6 +36,8 @@ public class MutiThreadServer {
 				Socket socket = server.accept();
 				Multithread multithread = new Multithread(socket);
 				new Thread(multithread).start();
+				
+				System.out.println("multi success");
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -107,7 +106,7 @@ class Multithread implements Runnable {
 	public void sendImage(String fileName, Socket socket) {
 		byte buffer[] = new byte[2048];
 		
-		File imgfile = new File(fileName+".JPG");
+		File imgfile = new File("./image/"+fileName+".JPG");
 		String fileLength = String.valueOf(imgfile.length());
 		
 		//change "1234" to "0000001234", to make sure 10 size

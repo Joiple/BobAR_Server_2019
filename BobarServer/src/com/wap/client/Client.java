@@ -2,28 +2,27 @@ package com.wap.client;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-
-import com.sun.java_cup.internal.runtime.Scanner;
+import java.util.Scanner;
 
 public class Client {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		Scanner scan = new Scanner(System.in);
 		Client cl = new Client();
 		System.out.println("request : ");
-		String requestData = new java.util.Scanner(System.in).nextLine();
+		String requestData = scan.nextLine();
 		
 		//cl.ClientRun(requestData);
 		cl.receiveImg(requestData);
 	}
+	
 	
 	public void receiveImg(String data) {
 		String host = "localhost";
@@ -54,17 +53,7 @@ public class Client {
 			bw.newLine();
 			bw.flush();
 			
-			//서버로부터 수신
-			/*is = socket.getInputStream();
-			isr = new InputStreamReader(is);
-			br = new BufferedReader(isr);
-			
-			String receiveData = "";
-			receiveData = br.readLine();
-			
-			System.out.println("서버로 부터 받은 데이터: "+receiveData);*/
-			
-			fos = new FileOutputStream("test.jpg");
+			fos = new FileOutputStream("test5.jpg");
 			is = socket.getInputStream();
 			byte buffer[] = new byte[2048];
 			
