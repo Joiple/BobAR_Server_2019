@@ -95,7 +95,11 @@ class Multithread implements Runnable {
 				responseData = initViewData();
 				sendData(responseData, socket);
 				
-			}else {
+			}else if(requestCode.equals("3")) {
+				responseData = reviewList(dataArray.get(1));
+				sendData(responseData, socket);
+			}
+			else {
 				responseData = processData(dataArray);
 				sendData(responseData, socket);
 			}
@@ -112,12 +116,12 @@ class Multithread implements Runnable {
 		
 		File imgfile = new File("./image/"+fileName+".JPG");
 		String fileLength = String.valueOf(imgfile.length());
-		System.out.println("file length : " + fileLength);
+		//System.out.println("file length : " + fileLength);
 		
 		//change "1234" to "0000001234", to make sure 10 size
 		String header = "0000000000".substring(0,10-fileLength.length()) + fileLength;
 		
-		System.out.println("header(length to byte) : " + header.getBytes());
+		//System.out.println("header(length to byte) : " + header.getBytes());
 		
 		FileInputStream fis = null;
 		OutputStream os = null;
@@ -241,6 +245,118 @@ class Multithread implements Runnable {
 			responseData += delimiter;
 			
 			responseData += imgFileName.get(i);
+			responseData += delimiter;
+		}
+		
+		return responseData;
+	}
+	
+	public String reviewList(String restaurantId) {
+		int rId = Integer.parseInt(restaurantId);	//ㅇ
+		String responseData = "";
+		
+		String restaurantName = "";	//ㅇ
+		int avgPoint = 0;	//모든 점수 다 더하고 리뷰개수*5 로 나눔
+		String address = "";	//ㅇ
+		String phoneNum = "";	//ㅇ
+		int reviewNum = 0;		//ㅇ
+		
+		List<Integer> reviewId = new ArrayList<Integer>();
+		List<String> text = new ArrayList<String>();
+		List<String> imgFileName = new ArrayList<String>();
+		List<Integer> likes = new ArrayList<Integer>();
+		List<String> date = new ArrayList<String>();
+		
+		
+		String sql = "select * from restaurant where restaurantId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, rId);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				restaurantName = rs.getString("rName");
+				address = rs.getString("rAddr");
+				phoneNum = rs.getString("rCall");
+				
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		//responseData += String.valueOf(restaurantNum) + delimiter;
+		sql = "select count(*) from review where restaurantId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, rId);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				reviewNum = rs.getInt(1);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		
+		sql = "select * from review where restaurantId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, rId);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				reviewId.add(rs.getInt("reviewId"));
+				text.add(rs.getString("text"));
+				imgFileName.add(rs.getString("reviewPicture"));
+				likes.add(rs.getInt("likes"));
+				date.add(rs.getString("date"));
+				
+				avgPoint += rs.getInt("tastePoint");
+				avgPoint += rs.getInt("cleanPoint");
+				avgPoint += rs.getInt("kindnessPoint");
+				avgPoint += rs.getInt("moodPoint");
+				avgPoint += rs.getInt("costPoint");
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		
+		responseData += restaurantName;
+		responseData += delimiter;
+		
+		avgPoint /= reviewNum * 5;
+		responseData += String.valueOf(avgPoint);
+		responseData += delimiter;
+		
+		responseData += address;
+		responseData += delimiter;
+		
+		responseData += phoneNum;
+		responseData += delimiter;
+		
+		responseData += String.valueOf(reviewNum);
+		responseData += delimiter;
+		
+		
+		for(int i = 0; i < reviewNum; i++) {
+			responseData += String.valueOf(reviewId.get(i));
+			responseData += delimiter;
+			
+			responseData += text.get(i);
+			responseData += delimiter;
+			
+			responseData += imgFileName.get(i);
+			responseData += delimiter;
+
+			responseData += String.valueOf(likes.get(i));
+			responseData += delimiter;
+			
+			responseData += date.get(i);
 			responseData += delimiter;
 		}
 		

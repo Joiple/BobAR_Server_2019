@@ -53,7 +53,7 @@ public class Client {
 			bw.newLine();
 			bw.flush();
 			
-			fos = new FileOutputStream("test5.jpg");
+			fos = new FileOutputStream("test.jpg");
 			is = socket.getInputStream();
 			byte buffer[] = new byte[2048];
 			
