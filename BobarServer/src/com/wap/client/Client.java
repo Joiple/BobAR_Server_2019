@@ -19,8 +19,8 @@ public class Client {
 		System.out.println("request : ");
 		String requestData = scan.nextLine();
 		
-		//cl.ClientRun(requestData);
-		cl.receiveImg(requestData);
+		cl.initDataRequest(requestData);
+		//cl.receiveImg(requestData);
 	}
 	
 	
@@ -90,7 +90,7 @@ public class Client {
 		}
 	}
 	
-	public void ClientRun(String data) {
+	public void initDataRequest(String data) {
 		String host = "localhost";
 		int port = 4000;
 		

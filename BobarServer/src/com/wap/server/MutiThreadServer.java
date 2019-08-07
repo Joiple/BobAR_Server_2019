@@ -91,6 +91,10 @@ class Multithread implements Runnable {
 			String requestCode = dataArray.get(0);
 			if(requestCode.equals("4")) {
 				sendImage(dataArray.get(1), socket);
+			}else if(requestCode.equals("1")){
+				responseData = initViewData();
+				sendData(responseData, socket);
+				
 			}else {
 				responseData = processData(dataArray);
 				sendData(responseData, socket);
@@ -108,9 +112,12 @@ class Multithread implements Runnable {
 		
 		File imgfile = new File("./image/"+fileName+".JPG");
 		String fileLength = String.valueOf(imgfile.length());
+		System.out.println("file length : " + fileLength);
 		
 		//change "1234" to "0000001234", to make sure 10 size
 		String header = "0000000000".substring(0,10-fileLength.length()) + fileLength;
+		
+		System.out.println("header(length to byte) : " + header.getBytes());
 		
 		FileInputStream fis = null;
 		OutputStream os = null;
@@ -147,22 +154,44 @@ class Multithread implements Runnable {
 		String responseData = "";
 		
 		List<Integer> restaurantId = new ArrayList<Integer>();
-		List<String> imgList = new ArrayList<String>();
+		List<String> rLongitude = new ArrayList<String>();
+		List<String> rLatitude = new ArrayList<String>();
+		List<String> rAltitude = new ArrayList<String>();
+		List<String> imgFileName = new ArrayList<String>();
 		
-		String sql = "select rid from restaurant";
+		
+		
+		int restaurantNum = 0;
+		
+		String sql = "select count(*) from restaurant";
 		try {
 			pstmt = con.prepareStatement(sql);
 			rs = pstmt.executeQuery();
 			
-			while(rs.next()) {
-				restaurantId.add(rs.getInt("rid"));
+			if(rs.next()) {
+				restaurantNum = rs.getInt(1);
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
 		
-		sql = "select picture from review where rid = ? order by date desc limit 1";
+		responseData += String.valueOf(restaurantNum) + delimiter;
+		
+		sql = "select restaurantId from restaurant";
+		try {
+			pstmt = con.prepareStatement(sql);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				restaurantId.add(rs.getInt(1));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select reviewPicture from review where restaurantId = ? order by date desc limit 1";
 		for(int i = 0; i < restaurantId.size(); i++) {
 			try {
 				pstmt = con.prepareStatement(sql);
@@ -171,7 +200,26 @@ class Multithread implements Runnable {
 				rs = pstmt.executeQuery();
 				
 				while(rs.next()) {
-					imgList.add(rs.getString("picture"));
+					imgFileName.add(rs.getString(1));
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		
+		sql = "select rLongitude, rLatitude, rAltitude from restaurant where restaurantId = ?";
+		for(int i = 0; i < restaurantId.size(); i++) {
+			try {
+				pstmt = con.prepareStatement(sql);
+				pstmt.setInt(1, restaurantId.get(i));
+				
+				rs = pstmt.executeQuery();
+				
+				while(rs.next()) {
+					rLongitude.add(rs.getString("rLongitude"));
+					rLatitude.add(rs.getString("rLatitude"));
+					rAltitude.add(rs.getString("rAltitude"));
 				}
 			}catch (Exception e) {
 				// TODO: handle exception
@@ -183,7 +231,16 @@ class Multithread implements Runnable {
 			responseData += String.valueOf(restaurantId.get(i));
 			responseData += delimiter;
 			
-			responseData += imgList.get(i);
+			responseData += rLongitude.get(i);
+			responseData += delimiter;
+
+			responseData += rLatitude.get(i);
+			responseData += delimiter;
+			
+			responseData += rAltitude.get(i);
+			responseData += delimiter;
+			
+			responseData += imgFileName.get(i);
 			responseData += delimiter;
 		}
 		

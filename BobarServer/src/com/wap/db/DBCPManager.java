@@ -14,7 +14,7 @@ public class DBCPManager {
 		if(dataSource == null) {
 			dataSource = new BasicDataSource();
 			dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-			dataSource.setUrl("jdbc:mysql://127.0.0.1:3306/bobar1");
+			dataSource.setUrl("jdbc:mysql://127.0.0.1:3306/bobar");
 		    dataSource.setUsername("root");
 		    dataSource.setPassword("root");
 		    dataSource.setMaxActive(100);
