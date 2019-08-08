@@ -101,6 +101,9 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("5")) {
 				responseData = detailReview(dataArray.get(1));
 				sendData(responseData, socket);	
+			}else if(requestCode.equals("6")) {
+				responseData = search(dataArray.get(1));
+				sendData(responseData, socket);
 			}
 			else {
 				responseData = processData(dataArray);
@@ -430,6 +433,97 @@ class Multithread implements Runnable {
 			responseData += delimiter;
 			
 			responseData += date.get(i);
+			responseData += delimiter;
+		}
+		
+		return responseData;
+	}
+	
+	public String search(String keyword) {
+		keyword = "%" + keyword + "%";
+		
+		String responseData = "";
+		
+		List<Integer> restaurantId = new ArrayList<Integer>();
+		List<String> rLongitude = new ArrayList<String>();
+		List<String> rLatitude = new ArrayList<String>();
+		List<String> rAltitude = new ArrayList<String>();
+		List<String> imgFileName = new ArrayList<String>();
+		
+		
+		
+		int restaurantNum = 0;
+		
+		String sql = "select restaurantId from review where text like ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, keyword);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				if(!restaurantId.contains(rs.getInt("restaurantId"))) {
+					restaurantId.add(rs.getInt("restaurantId"));
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		restaurantNum = restaurantId.size();
+		
+		responseData += String.valueOf(restaurantNum) + delimiter;
+		
+		sql = "select reviewPicture from review where restaurantId = ? order by date desc limit 1";
+		for(int i = 0; i < restaurantId.size(); i++) {
+			try {
+				pstmt = con.prepareStatement(sql);
+				pstmt.setInt(1, restaurantId.get(i));
+				
+				rs = pstmt.executeQuery();
+				
+				while(rs.next()) {
+					imgFileName.add(rs.getString(1));
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		
+		sql = "select rLongitude, rLatitude, rAltitude from restaurant where restaurantId = ?";
+		for(int i = 0; i < restaurantId.size(); i++) {
+			try {
+				pstmt = con.prepareStatement(sql);
+				pstmt.setInt(1, restaurantId.get(i));
+				
+				rs = pstmt.executeQuery();
+				
+				while(rs.next()) {
+					rLongitude.add(rs.getString("rLongitude"));
+					rLatitude.add(rs.getString("rLatitude"));
+					rAltitude.add(rs.getString("rAltitude"));
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		
+		for(int i = 0; i < restaurantId.size(); i++) {
+			responseData += String.valueOf(restaurantId.get(i));
+			responseData += delimiter;
+			
+			responseData += rLongitude.get(i);
+			responseData += delimiter;
+
+			responseData += rLatitude.get(i);
+			responseData += delimiter;
+			
+			responseData += rAltitude.get(i);
+			responseData += delimiter;
+			
+			responseData += imgFileName.get(i);
 			responseData += delimiter;
 		}
 		
