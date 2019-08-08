@@ -98,6 +98,9 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("3")) {
 				responseData = reviewList(dataArray.get(1));
 				sendData(responseData, socket);
+			}else if(requestCode.equals("5")) {
+				responseData = detailReview(dataArray.get(1));
+				sendData(responseData, socket);	
 			}
 			else {
 				responseData = processData(dataArray);
@@ -247,6 +250,76 @@ class Multithread implements Runnable {
 			responseData += imgFileName.get(i);
 			responseData += delimiter;
 		}
+		
+		return responseData;
+	}
+	
+	public String detailReview(String reviewId) {
+		String responseData = "";
+		
+		int rvId = Integer.parseInt(reviewId);
+		
+		String nickName = "";
+		int tastePoint = 0;
+		int cleanPoint = 0;
+		int kindnessPoint = 0;
+		int moodePoint = 0;
+		int costPoint = 0;
+		
+		int userNum = -1;
+		
+		String sql = "select * from review where reviewId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, rvId);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				tastePoint = rs.getInt("tastePoint");
+				cleanPoint = rs.getInt("cleanPoint");
+				kindnessPoint = rs.getInt("kindnessPoint");
+				moodePoint = rs.getInt("moodPoint");
+				costPoint = rs.getInt("costPoint");
+				
+				userNum = rs.getInt("userNum");
+				System.out.println(userNum);
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select nickname from user where userNum = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, userNum);
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				nickName = rs.getString("nickname");
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		responseData += nickName;
+		responseData += delimiter;
+		
+		responseData += String.valueOf(tastePoint);
+		responseData += delimiter;
+		
+		responseData += String.valueOf(cleanPoint);
+		responseData += delimiter;
+		
+		responseData += String.valueOf(kindnessPoint);
+		responseData += delimiter;
+		
+		responseData += String.valueOf(moodePoint);
+		responseData += delimiter;
+		
+		responseData += String.valueOf(costPoint);
+		responseData += delimiter;
 		
 		return responseData;
 	}
