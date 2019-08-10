@@ -26,6 +26,7 @@ import com.wap.db.DBCPManager;
 
 public class MutiThreadServer {
 	public static void main(String[] args) throws IOException {
+		System.out.println(System.getProperty("file.encoding"));
 		// TODO Auto-generated method stub
 		try {
 			ServerSocket server = null;
@@ -75,7 +76,7 @@ class Multithread implements Runnable {
 
 			// 클라이언트로 부터 데이터를 받기 위한 InputStream 선언
 			InputStream is = socket.getInputStream();
-			InputStreamReader isr = new InputStreamReader(is);
+			InputStreamReader isr = new InputStreamReader(is,"utf-8");
 			BufferedReader br = new BufferedReader(isr);
 
 			String data = null;
@@ -83,7 +84,7 @@ class Multithread implements Runnable {
 			System.out.println("클라이언트로 부터 받은 데이터 : " + data);
 
 			List<String> dataArray = new ArrayList<>();
-			StringTokenizer st = new StringTokenizer(data, "%%");
+			StringTokenizer st = new StringTokenizer(data, delimiter);
 			while (st.hasMoreTokens()) {
 				dataArray.add(st.nextToken());
 			}
@@ -680,7 +681,7 @@ class Multithread implements Runnable {
 		try {
 			// 클라이언트로 데이터를 보내기 위한 OutputStream 선언
 			os = socket.getOutputStream();
-			osw = new OutputStreamWriter(os);
+			osw = new OutputStreamWriter(os,"utf-8");
 			bw = new BufferedWriter(osw);
 
 			bw.write(data);

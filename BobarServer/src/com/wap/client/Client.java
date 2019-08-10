@@ -46,7 +46,7 @@ public class Client {
 			
 			//서버로 전송
 			os = socket.getOutputStream();
-			osw = new OutputStreamWriter(os);
+			osw = new OutputStreamWriter(os,"utf-8");
 			bw = new BufferedWriter(osw);
 			
 			bw.write(data);
@@ -109,7 +109,7 @@ public class Client {
 			
 			//서버로 전송
 			os = socket.getOutputStream();
-			osw = new OutputStreamWriter(os);
+			osw = new OutputStreamWriter(os,"utf-8");
 			bw = new BufferedWriter(osw);
 			
 			bw.write(data);
@@ -118,7 +118,7 @@ public class Client {
 			
 			//서버로부터 수신
 			is = socket.getInputStream();
-			isr = new InputStreamReader(is);
+			isr = new InputStreamReader(is,"utf-8");
 			br = new BufferedReader(isr);
 			
 			String receiveData = "";
