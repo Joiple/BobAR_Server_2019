@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -91,7 +92,7 @@ class Multithread implements Runnable {
 
 			String requestCode = dataArray.get(0);
 			if(requestCode.equals("4")) {
-				sendImage(dataArray.get(1), socket);
+				sendImg(dataArray.get(1), socket);
 			}else if(requestCode.equals("0")) {
 				responseData = myPage(dataArray.get(1));
 				sendData(responseData, socket);
@@ -107,6 +108,11 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("6")) {
 				responseData = search(dataArray.get(1));
 				sendData(responseData, socket);
+			}else if(requestCode.equals("7")) {
+				responseData = makeImgName(dataArray.get(1), dataArray.get(2));
+				sendData(responseData, socket);
+			}else if(requestCode.equals("8")) {
+				//사진 받기
 			}
 			else {
 				responseData = processData(dataArray);
@@ -120,17 +126,15 @@ class Multithread implements Runnable {
 		}
 	}
 
-	public void sendImage(String fileName, Socket socket) {
+	public void sendImg(String fileName, Socket socket) {
 		byte buffer[] = new byte[2048];
 		
 		File imgfile = new File("./image/"+fileName+".JPG");
 		String fileLength = String.valueOf(imgfile.length());
-		//System.out.println("file length : " + fileLength);
 		
-		//change "1234" to "0000001234", to make sure 10 size
+		//파일의 크기를 10바이트의 고정 크기로 전송
+		//ex) "1234" to "0000001234"
 		String header = "0000000000".substring(0,10-fileLength.length()) + fileLength;
-		
-		//System.out.println("header(length to byte) : " + header.getBytes());
 		
 		FileInputStream fis = null;
 		OutputStream os = null;
@@ -144,7 +148,9 @@ class Multithread implements Runnable {
 			
 			//send body
 			while(fis.available() > 0) {
+				//2048바이트씩 전송
 				int readSize = fis.read(buffer);
+				System.out.println(readSize);
 				os.write(buffer, 0, readSize);
 			}
 			
@@ -654,6 +660,74 @@ class Multithread implements Runnable {
 		}
 		
 		return responseData;
+	}
+	
+	public String makeImgName(String userId, String restaurantId) {
+		String sql = "select auto_increment from information_schema.tables where table_name = ? and table_schema = database()";
+		String review = "review";
+		String responseData = "";
+		
+		String reviewId = "";
+		int newReviewNum = 0;
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, review);
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()) {
+				newReviewNum = rs.getInt(1);
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		reviewId = String.valueOf(newReviewNum);
+		
+		responseData += "0";
+		responseData += "000000".substring(restaurantId.length()) + restaurantId;
+		responseData += "000000".substring(userId.length()) + userId;
+		responseData += "00000000".substring(reviewId.length()) + reviewId;
+		//responseData += delimiter;
+		
+		return responseData;
+	}
+	
+	public void recieveImg(String fileName, Socket socket) {
+		FileOutputStream fos = null;
+		InputStream is = null;
+		
+		try {
+			fos = new FileOutputStream("./image/" + fileName + ".jpg");
+			is = socket.getInputStream();
+			byte buffer[] = new byte[2048];
+			
+			//read header(10byte)
+			is.read(buffer, 0, 10);
+			String header = new String(buffer, 0, 10);
+			int bodySize = Integer.parseInt(header);
+			System.out.println(bodySize);
+			
+			int readSize = 0;
+			
+			//read body
+			while(readSize < bodySize) {
+				int rsize = is.read(buffer);
+				fos.write(buffer, 0, rsize);
+				readSize += rsize;
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}finally {
+			try {
+				is.close();
+				fos.close();
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public String processData(List<String> dataArray) {

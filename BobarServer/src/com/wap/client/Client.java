@@ -2,7 +2,10 @@ package com.wap.client;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -19,10 +22,20 @@ public class Client {
 		System.out.println("request : ");
 		String requestData = scan.nextLine();
 		
-		cl.initDataRequest(requestData);
+		//cl.initDataRequest(requestData);
 		//cl.receiveImg(requestData);
+		Socket socket = null;
+		try {
+			socket = new Socket("localhost",4000);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		String filename = cl.makeReview(requestData, socket);
+		System.out.println(filename);
 	}
-	
 	
 	public void receiveImg(String data) {
 		String host = "localhost";
@@ -35,8 +48,6 @@ public class Client {
 		BufferedWriter bw = null;
 		
 		InputStream is = null;
-		InputStreamReader isr = null;
-		BufferedReader br = null;
 		
 		FileOutputStream fos = null;
 		
@@ -44,7 +55,7 @@ public class Client {
 		try {
 			socket = new Socket(host, port);
 			
-			//서버로 전송
+			//서버로 이미지 요청
 			os = socket.getOutputStream();
 			osw = new OutputStreamWriter(os,"utf-8");
 			bw = new BufferedWriter(osw);
@@ -53,6 +64,7 @@ public class Client {
 			bw.newLine();
 			bw.flush();
 			
+			//이미지 수신
 			fos = new FileOutputStream("test.jpg");
 			is = socket.getInputStream();
 			byte buffer[] = new byte[2048];
@@ -143,5 +155,64 @@ public class Client {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	
+	public String makeReview(String data, Socket socket) {
+		String host = "localhost";
+		int port = 4000;
+		
+		//Socket socket = null;
+		
+		OutputStream os = null;
+		OutputStreamWriter osw = null;
+		BufferedWriter bw = null;
+		
+		InputStream is = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		
+		String receiveData = "";
+		
+		try {
+			//socket = new Socket(host, port);
+			
+			//서버로 이미지 요청
+			os = socket.getOutputStream();
+			osw = new OutputStreamWriter(os,"utf-8");
+			bw = new BufferedWriter(osw);
+			
+			bw.write(data);
+			bw.newLine();
+			bw.flush();
+			
+			//서버로부터 수신
+			is = socket.getInputStream();
+			isr = new InputStreamReader(is,"utf-8");
+			br = new BufferedReader(isr);
+			
+			receiveData = br.readLine();
+			
+			System.out.println("서버로 부터 받은 데이터: "+receiveData);
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}finally {
+			try {
+				bw.close();
+				osw.close();
+				os.close();
+				
+				
+				br.close();
+				isr.close();
+				is.close();
+				
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		return receiveData;
 	}
 }
