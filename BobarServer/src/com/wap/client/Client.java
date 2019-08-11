@@ -22,9 +22,9 @@ public class Client {
 		System.out.println("request : ");
 		String requestData = scan.nextLine();
 		
-		//cl.initDataRequest(requestData);
+		cl.initDataRequest(requestData);
 		//cl.receiveImg(requestData);
-		Socket socket = null;
+		/*Socket socket = null;
 		try {
 			socket = new Socket("localhost",4000);
 		} catch (IOException e) {
@@ -34,7 +34,7 @@ public class Client {
 		
 		
 		String filename = cl.makeReviewName(requestData, socket);
-		cl.sendImg(filename);
+		cl.sendImg(filename);*/
 	}
 	
 	public void sendImg(String fileName) {
@@ -53,6 +53,10 @@ public class Client {
 		OutputStreamWriter osw = null;
 		BufferedWriter bw = null;
 		
+		InputStream is = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		
 		try {
 			socket = new Socket(host, port);
 			
@@ -66,20 +70,22 @@ public class Client {
 			bw.newLine();
 			bw.flush();
 			
-			//1초 기다림
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			//서버로 부터 응답을 기다림
+			is = socket.getInputStream();
+			isr = new InputStreamReader(is, "utf-8");
+			br = new BufferedReader(isr);
 			
-			//send body
-			while(fis.available() > 0) {
-				//2048바이트씩 전송
-				int readSize = fis.read(buffer);
-				//System.out.println(readSize);
-				os.write(buffer, 0, readSize);
+			String serverResponse = br.readLine();
+			
+			//서버에서 이미지를 받을 준비가 됐을 경우 전송
+			if(serverResponse.equals("1")) {
+				//send body
+				while(fis.available() > 0) {
+					//2048바이트씩 전송
+					int readSize = fis.read(buffer);
+					//System.out.println(readSize);
+					os.write(buffer, 0, readSize);
+				}
 			}
 		}catch (IOException e) {
 			// TODO Auto-generated catch block

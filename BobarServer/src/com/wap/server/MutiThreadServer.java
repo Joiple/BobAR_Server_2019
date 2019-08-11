@@ -15,7 +15,9 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -96,7 +98,7 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("0")) {
 				responseData = myPage(dataArray.get(1));
 				sendData(responseData, socket);
-			}else if(requestCode.equals("1")){
+			}else if(requestCode.equals("1")) {
 				responseData = initViewData();
 				sendData(responseData, socket);
 			}else if(requestCode.equals("3")) {
@@ -114,7 +116,10 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("8")) {
 				//사진 받기
 				recieveImg(socket,dataArray.get(1),dataArray.get(2));
-			}else {
+			}else if(requestCode.equals("9")) {
+				makeReview(dataArray.get(1), dataArray.get(2), dataArray.get(3), dataArray.get(4), dataArray.get(5), dataArray.get(6), dataArray.get(7));
+			}
+			else {
 				//recieveImg(socket);
 				System.out.println("error");
 			}/*else {
@@ -700,6 +705,10 @@ class Multithread implements Runnable {
 		FileOutputStream fos = null;
 		InputStream is = null;
 		
+		OutputStream os =null;
+		OutputStreamWriter osw = null;
+		BufferedWriter bw = null;
+		
 		int fileLength = Integer.parseInt(fileLen);
 		
 		try {	
@@ -710,9 +719,17 @@ class Multithread implements Runnable {
 			int readSize = 0;
 			
 			//read body
+			os = socket.getOutputStream();
+			osw = new OutputStreamWriter(os,"utf-8");
+			bw = new BufferedWriter(osw);
+			
+			//1을 client로 전송해서 이미지를 받을 준비가 됐다는 것을 알림
+			bw.write("1");
+			bw.newLine();
+			bw.flush();
+			
 			while(readSize < fileLength) {
 				int rsize = is.read(buffer);
-				System.out.println("rsize : " +rsize);
 				fos.write(buffer, 0, rsize);
 				readSize += rsize;
 			}
@@ -729,6 +746,78 @@ class Multithread implements Runnable {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void makeReview(String imgFileName, String text, String tastePoint, String cleanPoint, String kindnessPoint, String moodPoint, String costPoint) {
+		OutputStream os =null;
+		OutputStreamWriter osw = null;
+		BufferedWriter bw = null;
+		
+		String reviewId = "";
+		String userNum = "";
+		String restaurantId = "";
+		String date = null;
+		
+		int tastePointToInt = Integer.parseInt(tastePoint);
+		int cleanPointToInt = Integer.parseInt(cleanPoint);
+		int kindnessPointToInt = Integer.parseInt(kindnessPoint);
+		int moodPointToInt = Integer.parseInt(moodPoint);
+		int costPointToInt = Integer.parseInt(costPoint);
+		
+		for(int i = 1; i <= 6; i++) {
+			restaurantId += imgFileName.charAt(i);
+		}
+		
+		for(int i = 7; i <= 12; i++) {
+			userNum += imgFileName.charAt(i);
+		}
+		
+		for(int i = 13; i <= 20; i++) {
+			reviewId += imgFileName.charAt(i);
+		}
+		
+		Date d = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		
+		date = sdf.format(d);
+		
+		String sql = "insert into review (userNum, restaurantId, date, text, tastePoint, cleanPoint, kindnessPoint, moodPoint, costPoint, reviewPicture)"
+				+ "values(?,?,?,?,?,?,?,?,?,?)";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setInt(1, Integer.parseInt(userNum));
+			pstmt.setInt(2, Integer.parseInt(restaurantId));
+			pstmt.setString(3, date);
+			pstmt.setString(4, text);
+			pstmt.setInt(5, tastePointToInt);
+			pstmt.setInt(6, cleanPointToInt);
+			pstmt.setInt(7, kindnessPointToInt);
+			pstmt.setInt(8, moodPointToInt);
+			pstmt.setInt(9, costPointToInt);
+			pstmt.setString(10, imgFileName);
+			pstmt.executeUpdate();
+			
+			os = socket.getOutputStream();
+			osw = new OutputStreamWriter(os,"utf-8");
+			bw = new BufferedWriter(osw);
+			
+			bw.write("1");
+			bw.newLine();
+			bw.flush();
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				osw.close();
+				os.close();
+			}catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		
 	}
 
 	public String processData(List<String> dataArray) {
