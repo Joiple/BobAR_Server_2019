@@ -25,6 +25,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
+import com.mysql.fabric.xmlrpc.base.Array;
 import com.wap.db.DBCPManager;
 
 public class MutiThreadServer {
@@ -118,6 +119,9 @@ class Multithread implements Runnable {
 				recieveImg(socket,dataArray.get(1),dataArray.get(2));
 			}else if(requestCode.equals("9")) {
 				makeReview(dataArray.get(1), dataArray.get(2), dataArray.get(3), dataArray.get(4), dataArray.get(5), dataArray.get(6), dataArray.get(7));
+			}else if(requestCode.equals("10")) {
+				responseData = follower(dataArray.get(1));
+				sendData(responseData, socket);
 			}
 			else {
 				//recieveImg(socket);
@@ -573,6 +577,102 @@ class Multithread implements Runnable {
 			responseData += delimiter;
 			
 			responseData += imgFileName.get(i);
+			responseData += delimiter;
+		}
+		
+		return responseData;
+	}
+	
+	public String follower(String userId) {
+		String responseData = "";
+		List<String> followerId = new ArrayList<String>();	//o
+		List<Integer> followerUserNum = new ArrayList<Integer>();
+		List<String> imgFileName = new ArrayList<String>();	//o
+		List<String> nickname = new ArrayList<String>();	//o
+		List<Integer> reviewNum = new ArrayList<Integer>();	//o
+		List<Boolean> isFollow = new ArrayList<Boolean>();
+		
+		String sql = "select userId from follow where followingId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, userId);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				followerId.add(rs.getString("userId"));
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select * from user where userId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			for(int i = 0; i < followerId.size(); i++) {
+				pstmt.setString(1, followerId.get(i));
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					nickname.add(rs.getString("nickname"));
+					imgFileName.add(rs.getString("profilePicture"));
+					followerUserNum.add(rs.getInt("userNum"));
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select count(*) from review where userNum = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			for(int i = 0; i < followerId.size(); i++) {
+				pstmt.setInt(1, followerUserNum.get(i));
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					reviewNum.add(rs.getInt(1));
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select * from follow where userId = ? and followingId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, userId);
+			for(int i = 0; i < followerId.size(); i++) {
+				pstmt.setString(2, followerId.get(i));
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					isFollow.add(true);
+				}else {
+					isFollow.add(false);
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		responseData += String.valueOf(followerId.size());
+		responseData += delimiter;
+		
+		for(int i = 0; i < followerId.size(); i++) {
+			responseData += nickname.get(i);
+			responseData += delimiter;
+			
+			responseData += imgFileName.get(i);
+			responseData += delimiter;
+			
+			responseData += String.valueOf(reviewNum.get(i));
+			responseData += delimiter;
+			
+			responseData += String.valueOf(isFollow.get(i));
 			responseData += delimiter;
 		}
 		
