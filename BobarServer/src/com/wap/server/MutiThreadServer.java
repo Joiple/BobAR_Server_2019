@@ -113,11 +113,14 @@ class Multithread implements Runnable {
 				sendData(responseData, socket);
 			}else if(requestCode.equals("8")) {
 				//사진 받기
-			}
-			else {
+				recieveImg(socket,dataArray.get(1),dataArray.get(2));
+			}else {
+				//recieveImg(socket);
+				System.out.println("error");
+			}/*else {
 				responseData = processData(dataArray);
 				sendData(responseData, socket);
-			}
+			}*/
 			System.out.println("*************send success*************");
 
 		} catch (Exception e) {
@@ -693,29 +696,27 @@ class Multithread implements Runnable {
 		return responseData;
 	}
 	
-	public void recieveImg(String fileName, Socket socket) {
+	public void recieveImg(Socket socket, String fileName,String fileLen) {
 		FileOutputStream fos = null;
 		InputStream is = null;
 		
-		try {
+		int fileLength = Integer.parseInt(fileLen);
+		
+		try {	
 			fos = new FileOutputStream("./image/" + fileName + ".jpg");
 			is = socket.getInputStream();
 			byte buffer[] = new byte[2048];
 			
-			//read header(10byte)
-			is.read(buffer, 0, 10);
-			String header = new String(buffer, 0, 10);
-			int bodySize = Integer.parseInt(header);
-			System.out.println(bodySize);
-			
 			int readSize = 0;
 			
 			//read body
-			while(readSize < bodySize) {
+			while(readSize < fileLength) {
 				int rsize = is.read(buffer);
+				System.out.println("rsize : " +rsize);
 				fos.write(buffer, 0, rsize);
 				readSize += rsize;
 			}
+			System.out.println("readSize :"+readSize);
 		}catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();

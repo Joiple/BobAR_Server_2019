@@ -33,8 +33,69 @@ public class Client {
 		}
 		
 		
-		String filename = cl.makeReview(requestData, socket);
-		System.out.println(filename);
+		String filename = cl.makeReviewName(requestData, socket);
+		cl.sendImg(filename);
+	}
+	
+	public void sendImg(String fileName) {
+		String host = "localhost";
+		int port = 4000;
+		
+		Socket socket = null;
+		
+		byte buffer[] = new byte[2048];
+		
+		File imgfile = new File("test.jpg");
+		String fileLength = String.valueOf(imgfile.length());
+		
+		FileInputStream fis = null;
+		OutputStream os = null;
+		OutputStreamWriter osw = null;
+		BufferedWriter bw = null;
+		
+		try {
+			socket = new Socket(host, port);
+			
+			fis = new FileInputStream(imgfile);
+			os = socket.getOutputStream();
+			osw = new OutputStreamWriter(os,"utf-8");
+			bw = new BufferedWriter(osw);
+			
+			//이미지를 전송 할 것이라는 client 코드 전송
+			bw.write("8%%"+fileName+"%%"+fileLength+"%%");
+			bw.newLine();
+			bw.flush();
+			
+			//1초 기다림
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//send body
+			while(fis.available() > 0) {
+				//2048바이트씩 전송
+				int readSize = fis.read(buffer);
+				//System.out.println(readSize);
+				os.write(buffer, 0, readSize);
+			}
+		}catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			try {
+				bw.close();
+				osw.close();
+				os.close();
+				
+				fis.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void receiveImg(String data) {
@@ -158,7 +219,7 @@ public class Client {
 	}
 	
 	
-	public String makeReview(String data, Socket socket) {
+	public String makeReviewName(String data, Socket socket) {
 		String host = "localhost";
 		int port = 4000;
 		
