@@ -68,7 +68,7 @@ class Multithread implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 		try {
-			System.out.println("*************waiting*************");
+			System.out.println("******************waiting******************");
 			System.out.println(socket.getInetAddress() + " 로 부터 연결 요청");
 
 			// 클라이언트로 부터 데이터를 받기 위한 InputStream 선언
@@ -108,7 +108,6 @@ class Multithread implements Runnable {
 				responseData = makeImgName(dataArray.get(1), dataArray.get(2));
 				sendData(responseData, socket);
 			} else if (requestCode.equals("8")) {
-				// 사진 받기
 				recieveImg(socket, dataArray.get(1), dataArray.get(2));
 			} else if (requestCode.equals("9")) {
 				makeReview(dataArray.get(1), dataArray.get(2), dataArray.get(3), dataArray.get(4), dataArray.get(5),
@@ -120,9 +119,10 @@ class Multithread implements Runnable {
 				responseData = following(dataArray.get(1));
 				sendData(responseData, socket);
 			} else {
-				System.out.println("error");
+				responseData = "wrong code";
+				sendData(responseData, socket);
 			}
-			System.out.println("*************send success*************");
+			System.out.println("****************send success***************");
 
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -397,7 +397,7 @@ class Multithread implements Runnable {
 		String responseData = "";
 
 		String restaurantName = "";
-		int avgPoint = 0; // 모든 점수 다 더하고 리뷰개수*5 로 나눔
+		double avgPoint = 0; // 모든 점수 다 더하고 리뷰개수*5 로 나눔
 		String address = "";
 		String phoneNum = "";
 		int reviewNum = 0;
@@ -467,7 +467,7 @@ class Multithread implements Runnable {
 		responseData += delimiter;
 
 		avgPoint /= reviewNum * 5;
-		responseData += String.valueOf(avgPoint);
+		responseData += String.format("%.1f", avgPoint);
 		responseData += delimiter;
 
 		responseData += address;
