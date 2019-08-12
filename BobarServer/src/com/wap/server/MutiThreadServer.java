@@ -25,12 +25,10 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import com.mysql.fabric.xmlrpc.base.Array;
 import com.wap.db.DBCPManager;
 
 public class MutiThreadServer {
 	public static void main(String[] args) throws IOException {
-		System.out.println(System.getProperty("file.encoding"));
 		// TODO Auto-generated method stub
 		try {
 			ServerSocket server = null;
@@ -41,8 +39,6 @@ public class MutiThreadServer {
 				Socket socket = server.accept();
 				Multithread multithread = new Multithread(socket);
 				new Thread(multithread).start();
-				
-				System.out.println("multi success");
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -75,7 +71,6 @@ class Multithread implements Runnable {
 		// TODO Auto-generated method stub
 		try {
 			System.out.println("*************waiting*************");
-			/* socket = server.accept(); */
 			System.out.println(socket.getInetAddress() + " 로 부터 연결 요청");
 
 			// 클라이언트로 부터 데이터를 받기 위한 InputStream 선언
@@ -122,14 +117,13 @@ class Multithread implements Runnable {
 			}else if(requestCode.equals("10")) {
 				responseData = follower(dataArray.get(1));
 				sendData(responseData, socket);
+			}else if(requestCode.equals("11")) {
+				responseData = following(dataArray.get(1));
+				sendData(responseData, socket);
 			}
 			else {
-				//recieveImg(socket);
 				System.out.println("error");
-			}/*else {
-				responseData = processData(dataArray);
-				sendData(responseData, socket);
-			}*/
+			}
 			System.out.println("*************send success*************");
 
 		} catch (Exception e) {
@@ -349,14 +343,14 @@ class Multithread implements Runnable {
 	}
 	
 	public String reviewList(String restaurantId) {
-		int rId = Integer.parseInt(restaurantId);	//ㅇ
+		int rId = Integer.parseInt(restaurantId);
 		String responseData = "";
 		
-		String restaurantName = "";	//ㅇ
+		String restaurantName = "";
 		int avgPoint = 0;	//모든 점수 다 더하고 리뷰개수*5 로 나눔
-		String address = "";	//ㅇ
-		String phoneNum = "";	//ㅇ
-		int reviewNum = 0;		//ㅇ
+		String address = "";
+		String phoneNum = "";
+		int reviewNum = 0;
 		
 		List<Integer> reviewId = new ArrayList<Integer>();
 		List<String> text = new ArrayList<String>();
@@ -382,7 +376,6 @@ class Multithread implements Runnable {
 			e.printStackTrace();
 		}
 		
-		//responseData += String.valueOf(restaurantNum) + delimiter;
 		sql = "select count(*) from review where restaurantId = ?";
 		try {
 			pstmt = con.prepareStatement(sql);
@@ -396,7 +389,6 @@ class Multithread implements Runnable {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		
 		
 		sql = "select * from review where restaurantId = ?";
 		try {
@@ -422,7 +414,6 @@ class Multithread implements Runnable {
 			e.printStackTrace();
 		}
 		
-		
 		responseData += restaurantName;
 		responseData += delimiter;
 		
@@ -438,7 +429,6 @@ class Multithread implements Runnable {
 		
 		responseData += String.valueOf(reviewNum);
 		responseData += delimiter;
-		
 		
 		for(int i = 0; i < reviewNum; i++) {
 			responseData += String.valueOf(reviewId.get(i));
@@ -463,9 +453,9 @@ class Multithread implements Runnable {
 	public String myPage(String userId) {
 		String responseData = "";
 		
-		String nickname = null;	//0
-		String profileFileName = null;	//0
-		int userNum = 0;	//0
+		String nickname = null;
+		String profileFileName = null;
+		int userNum = 0;
 		int followerNum = 0;
 		int followingNum = 0;
 		int reviewNum = 0;
@@ -583,13 +573,87 @@ class Multithread implements Runnable {
 		return responseData;
 	}
 	
+	public String following(String userId) {
+		String responseData = "";
+		List<String> followingId = new ArrayList<String>();
+		List<Integer> followingUserNum = new ArrayList<Integer>();
+		List<String> imgFileName = new ArrayList<String>();
+		List<String> nickname = new ArrayList<String>();
+		List<Integer> reviewNum = new ArrayList<Integer>();
+		
+		String sql = "select followingId from follow where userId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, userId);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				followingId.add(rs.getString("followingId"));
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select * from user where userId = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			for(int i = 0; i < followingId.size(); i++) {
+				pstmt.setString(1, followingId.get(i));
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					nickname.add(rs.getString("nickname"));
+					imgFileName.add(rs.getString("profilePicture"));
+					followingUserNum.add(rs.getInt("userNum"));
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		sql = "select count(*) from review where userNum = ?";
+		try {
+			pstmt = con.prepareStatement(sql);
+			for(int i = 0; i < followingId.size(); i++) {
+				pstmt.setInt(1, followingUserNum.get(i));
+				rs = pstmt.executeQuery();
+				
+				if(rs.next()) {
+					reviewNum.add(rs.getInt(1));
+				}
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		
+		
+		responseData += String.valueOf(followingId.size());
+		responseData += delimiter;
+		
+		for(int i = 0; i < followingId.size(); i++) {
+			responseData += nickname.get(i);
+			responseData += delimiter;
+			
+			responseData += imgFileName.get(i);
+			responseData += delimiter;
+			
+			responseData += String.valueOf(reviewNum.get(i));
+			responseData += delimiter;
+		}
+		
+		return responseData;
+	}
+	
 	public String follower(String userId) {
 		String responseData = "";
-		List<String> followerId = new ArrayList<String>();	//o
+		List<String> followerId = new ArrayList<String>();
 		List<Integer> followerUserNum = new ArrayList<Integer>();
-		List<String> imgFileName = new ArrayList<String>();	//o
-		List<String> nickname = new ArrayList<String>();	//o
-		List<Integer> reviewNum = new ArrayList<Integer>();	//o
+		List<String> imgFileName = new ArrayList<String>();
+		List<String> nickname = new ArrayList<String>();
+		List<Integer> reviewNum = new ArrayList<Integer>();
 		List<Boolean> isFollow = new ArrayList<Boolean>();
 		
 		String sql = "select userId from follow where followingId = ?";
