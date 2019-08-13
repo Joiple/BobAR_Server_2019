@@ -557,6 +557,9 @@ class Multithread implements Runnable {
 		int costPoint = 0;
 
 		int userNum = -1;
+		
+		String picture = "";
+		int pictureNum = 0;
 
 		String sql = "select * from review where reviewId = ?";
 		try {
@@ -570,6 +573,9 @@ class Multithread implements Runnable {
 				kindnessPoint = rs.getInt("kindnessPoint");
 				moodePoint = rs.getInt("moodPoint");
 				costPoint = rs.getInt("costPoint");
+				
+				picture = rs.getString("reviewPicture");
+				pictureNum = rs.getInt("pictureNum");
 
 				userNum = rs.getInt("userNum");
 				System.out.println(userNum);
@@ -592,7 +598,9 @@ class Multithread implements Runnable {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-
+		
+		picture = 
+		
 		responseData += nickName;
 		responseData += delimiter;
 
