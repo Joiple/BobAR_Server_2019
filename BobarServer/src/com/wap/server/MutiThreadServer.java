@@ -105,13 +105,13 @@ class Multithread implements Runnable {
 				responseData = search(dataArray.get(1));
 				sendData(responseData, socket);
 			} else if (requestCode.equals("7")) {
-				responseData = makeImgName(dataArray.get(1), dataArray.get(2));
+				responseData = makeImgName(dataArray.get(1), dataArray.get(2), dataArray.get(3));
 				sendData(responseData, socket);
 			} else if (requestCode.equals("8")) {
 				recieveImg(socket, dataArray.get(1), dataArray.get(2));
 			} else if (requestCode.equals("9")) {
 				makeReview(dataArray.get(1), dataArray.get(2), dataArray.get(3), dataArray.get(4), dataArray.get(5),
-						dataArray.get(6), dataArray.get(7));
+						dataArray.get(6), dataArray.get(7), dataArray.get(8));
 			} else if (requestCode.equals("10")) {
 				responseData = follower(dataArray.get(1));
 				sendData(responseData, socket);
@@ -599,7 +599,7 @@ class Multithread implements Runnable {
 			e.printStackTrace();
 		}
 		
-		picture = 
+		picture = picture.substring(0, picture.length()-1);
 		
 		responseData += nickName;
 		responseData += delimiter;
@@ -619,6 +619,11 @@ class Multithread implements Runnable {
 		responseData += String.valueOf(costPoint);
 		responseData += delimiter;
 
+		for(int i = 1; i <= pictureNum; i++) {
+			responseData += picture + String.valueOf(i);
+			responseData += delimiter;
+		}
+		
 		return responseData;
 	}
 
@@ -713,7 +718,7 @@ class Multithread implements Runnable {
 	}
 
 	// code 7 make image file name(write review)
-	public String makeImgName(String userId, String restaurantId) {
+	public String makeImgName(String userId, String restaurantId, String fileNum) {
 		String sql = "select auto_increment from information_schema.tables where table_name = ? and table_schema = database()";
 		String review = "review";
 		String responseData = "";
@@ -740,8 +745,14 @@ class Multithread implements Runnable {
 		responseData += "000000".substring(userId.length()) + userId;
 		responseData += "00000000".substring(reviewId.length()) + reviewId;
 		// responseData += delimiter;
+		
+		String result = "";
+		for(int i = 1; i <= Integer.parseInt(fileNum); i++) {
+			result += responseData + String.valueOf(i);
+			result += delimiter;
+		}
 
-		return responseData;
+		return result;
 	}
 
 	// code 8 receive image file(write review)
@@ -794,7 +805,7 @@ class Multithread implements Runnable {
 
 	// code 9 make review(write review)
 	public void makeReview(String imgFileName, String text, String tastePoint, String cleanPoint, String kindnessPoint,
-			String moodPoint, String costPoint) {
+			String moodPoint, String costPoint, String imgFileNum) {
 		OutputStream os = null;
 		OutputStreamWriter osw = null;
 		BufferedWriter bw = null;
@@ -827,7 +838,7 @@ class Multithread implements Runnable {
 
 		date = sdf.format(d);
 
-		String sql = "insert into review (userNum, restaurantId, date, text, tastePoint, cleanPoint, kindnessPoint, moodPoint, costPoint, reviewPicture)"
+		String sql = "insert into review (userNum, restaurantId, date, text, tastePoint, cleanPoint, kindnessPoint, moodPoint, costPoint, reviewPicture, pictureNum)"
 				+ "values(?,?,?,?,?,?,?,?,?,?)";
 		try {
 			pstmt = con.prepareStatement(sql);
@@ -841,6 +852,7 @@ class Multithread implements Runnable {
 			pstmt.setInt(8, moodPointToInt);
 			pstmt.setInt(9, costPointToInt);
 			pstmt.setString(10, imgFileName);
+			pstmt.setInt(11, Integer.parseInt(imgFileNum));
 			pstmt.executeUpdate();
 
 			os = socket.getOutputStream();

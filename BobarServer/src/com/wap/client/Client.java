@@ -22,9 +22,9 @@ public class Client {
 		System.out.println("request : ");
 		String requestData = scan.nextLine();
 		
-		cl.initDataRequest(requestData);
+		//cl.initDataRequest(requestData);
 		//cl.receiveImg(requestData);
-		/*Socket socket = null;
+		Socket socket = null;
 		try {
 			socket = new Socket("localhost",4000);
 		} catch (IOException e) {
@@ -33,8 +33,9 @@ public class Client {
 		}
 		
 		
-		String filename = cl.makeReviewName(requestData, socket);
-		cl.sendImg(filename);*/
+		//String filename = cl.makeReviewName(requestData, socket);
+		//System.out.println(filename);
+		cl.sendImg("0000013000013000000142");
 	}
 	
 	public void sendImg(String fileName) {
