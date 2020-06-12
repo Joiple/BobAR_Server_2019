@@ -1,4 +1,4 @@
-# BobAR_protocol_2019
+# BobAR_protocol_2019(UTF-8 encode)
 
 ## 1. 이미지 파일 이름 형식
 ### 1-1. 리뷰 이미지 파일 이름 형식
